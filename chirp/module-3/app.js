@@ -8,10 +8,14 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 // initialize mongoose schemas
 require('./models/models.js');
-var api = require('./routes/api');
-var authenticate = require('./routes/authenticate')(passport);
 var mongoose = require('mongoose');
 mongoose.connect("mongodb://localhost:27017/chirp-test");
+
+// All of my requires
+var index = require('./routes/index');
+var api = require('./routes/api');
+var authenticate = require('./routes/authenticate')(passport);
+
 var app = express();
 
 // view engine setup
@@ -31,11 +35,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
 app.use(passport.session());
 
-var initPassport = require('./passport-init');
-initPassport(passport);
-
+app.use('/', index);
 app.use('/api', api);
 app.use('/auth', authenticate);
+
+// Initialize Passport
+var initPassport = require('./passport-init');
+initPassport(passport);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
