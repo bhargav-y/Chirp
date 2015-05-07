@@ -2,11 +2,11 @@ var app = angular.module('chirpApp', ['ngRoute']).run(function($rootScope, $http
   $rootScope.authenticated = false;
   $rootScope.current_user = "";
 
-  $rootScope.logout = function() {
+  $rootScope.signout = function() {
     $http.get('/auth/signout');
 
     $rootScope.authenticated = false;
-    $rootScope.current_user = "";
+    $rootScope.current_user = '';
   };
 });
 
@@ -29,9 +29,22 @@ app.config(function($routeProvider) {
   });
 });
 
+app.factory('postService', function($http) {
+  var baseUrl = "/api/posts";
+  var factory = {};
+  factory.getAll = function() {
+    return $http.get(baseUrl);
+  };
+  return factory;
+});
+
 app.controller('mainController', function($scope) {
   $scope.posts = [];
   $scope.newPost = {created_by: '', text: '', created_at: ''};
+
+  postService.getAll().success(function(data) {
+    $scope.posts = data;
+  });
 
   $scope.post = function(){
     $scope.newPost.created_at = Date.now();
