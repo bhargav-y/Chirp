@@ -1,4 +1,4 @@
-var app = angular.module('chirpApp', ['ngRoute']).run(function($rootScope, $http) {
+var app = angular.module('chirpApp', ['ngRoute', 'ngResource']).run(function($rootScope, $http) {
   $rootScope.authenticated = false;
   $rootScope.current_user = "";
 
@@ -29,28 +29,22 @@ app.config(function($routeProvider) {
   });
 });
 
-app.factory('postService', function($http) {
-  var baseUrl = "/api/posts";
-  var factory = {};
-  factory.getAll = function() {
-    return $http.get(baseUrl);
-  };
-  return factory;
+app.factory('postService', function($resource) {
+  return $resource('/api/posts/:id');
 });
 
-app.controller('mainController', function($scope) {
-  $scope.posts = [];
+app.controller('mainController', function($rootScope, $scope, postService) {
+  $scope.posts = postService.query();
   $scope.newPost = {created_by: '', text: '', created_at: ''};
 
-  postService.getAll().success(function(data) {
-    $scope.posts = data;
-  });
-
-  $scope.post = function(){
-    $scope.newPost.created_at = Date.now();
-    $scope.posts.push($scope.newPost);
+  $scope.post = function() {
+  $scope.newPost.created_by = $rootScope.current_user;
+  $scope.newPost.created_at = Date.now();
+  postService.save($scope.newPost, function(){
+    $scope.posts = postService.query();
     $scope.newPost = {created_by: '', text: '', created_at: ''};
-  };
+  });
+};
 });
 
 app.controller('authController', function($scope, $rootScope, $http, $location){
